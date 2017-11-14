@@ -44,6 +44,13 @@ public class Server extends Connection {
 
 
         if(splitMessage[0].equals("1")){
+            String messageToSend = "";
+            //realIP + fakeIP + port
+            for (int i = 0; i < dataTable.size(); i++) {
+                messageToSend += dataTable.get(i).getRouterRealIp() + ",";
+
+            }
+
 
             //En el caso de que sea una terminal
             //Retornar todos los que son routers de mi red
