@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Dispatcher.iml" filepath="$PROJECT_DIR$/Dispatcher.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/NetDispatcher.iml" filepath="$PROJECT_DIR$/.idea/NetDispatcher.iml" />
     </modules>
   </component>
 </project>

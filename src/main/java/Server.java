@@ -1,26 +1,27 @@
-import javax.management.relation.RoleInfo;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.LinkedList;
 
 public class Server extends Connection {
-    private LinkedList<RouterInfo> dataTable;
+    private LinkedList<NetComponent> dataTable;
 
     public Server (int port, String host) {
         super(ConnectionType.SERVER, port, host);
+        setDataTable(new LinkedList<NetComponent>());
     }
 
-    public void startServer(LinkedList<RouterInfo> dataTable){
-        this.dataTable = dataTable;
+    public void startServer(LinkedList<NetComponent> dataTable){
+        this.setDataTable(dataTable);
         try{
             while(true) {
                 System.out.println("Server waiting...");
                 clientSocket = serverSocket.accept();
                 System.out.println("Server connected");
                 clientOutStream = new DataInputStream(this.clientSocket.getInputStream());
+                String connectionIP = clientSocket.getRemoteSocketAddress().toString().split(":")[0];
+                //Get data
                 String message = this.clientOutStream.readUTF();
-                checkMessage(message);
-                //System.out.println("Mensaje recibido: " + message);
+                checkMessage(message, connectionIP);
             }
         }catch (IOException e){
             e.printStackTrace();
@@ -33,21 +34,32 @@ public class Server extends Connection {
 
     //Llega un mensaje --> si es de tipo 1 significa que es un terminal, entonces ocupo guardar mis datos y que me devuelvan los datos de terminales
 
-    private void checkMessage(String message){
-        //type + realIP + fakeIP + port
+    public void checkMessage(String message, String connectionIP) {
+        //NodeIP, myIP (dispatcher), 7 (action type), nodePort
+        String[] splitMessage = message.split("\n");
+         NetComponent comp = new NetComponent(splitMessage, connectionIP);
+        dataTable.add(comp);
+        StringBuilder stringBuilder = new StringBuilder();
+        for (NetComponent aDataTable : dataTable) {
+            stringBuilder.append(aDataTable.toString()).append('#');
+        }
+
+        System.out.println(stringBuilder.toString());
+        //createResponseThread(stringBuilder.toString(), comp.getPort(), comp.getRealIp());
+    }
+
+        /**
+        //realIP + fakeIP + port
         String[] splitMessage = message.split("\n");
 
-        final RouterInfo newData = new RouterInfo(splitMessage, checkIfTerminal(splitMessage[0]));
+        final NetComponent newData = new NetComponent(splitMessage);
 
-        dataTable.add(newData);
+        getDataTable().add(newData);
         System.out.println("Mensaje recibido: \n" + message);
-
-
-        if(splitMessage[0].equals("1")){
             String messageToSend = "";
             //realIP + fakeIP + port
-            for (int i = 0; i < dataTable.size(); i++) {
-                messageToSend += dataTable.get(i).getRouterRealIp() + ",";
+            for (int i = 0; i < getDataTable().size(); i++) {
+                messageToSend += getDataTable().get(i).getRealIp() + ",";
 
             }
 
@@ -58,21 +70,55 @@ public class Server extends Connection {
                 public void run(){
                     System.out.println("Running thread: " + getName());
 
-                    Client client = new Client(ConnectionType.CLIENT, newData.getRouterPort(), newData.getRouterRealIp());
+                    Client client = new Client(ConnectionType.CLIENT, newData.getPort(), newData.getRealIp());
                     client.sendToClient(newData.toString());
                 }
             };
             thread.start();
+         */
+
+
+
+    public NetComponent parseFromDispatcher(String dispatcherInput){
+        String[] netComponents = dispatcherInput.split("#");
+        String[] aux;
+        for (String netComponent : netComponents) {
+            aux = netComponent.split(",");
+            //Create item
+            //realIP = aux[0];
+            //fakeIP = aux[1];
+            //port = Integer.parseInt(aux[2].trim());
 
         }
-        else{
-            //Caso de router
-            //retornar las cosas de mi red
-        }
 
+        return null;
     }
 
-    public boolean checkIfTerminal(String input){
-        return input.equals("1");
+
+
+
+    public LinkedList<NetComponent> getDataTable() {
+        return dataTable;
+    }
+
+    public void setDataTable(LinkedList<NetComponent> dataTable) {
+        this.dataTable = dataTable;
+    }
+
+    private void createResponseThread(final String responseMessage, int port, final String realIP){
+        final Integer targetPort = port;
+        Thread thread = new Thread("Return values to terminal node") {
+            public void run(){
+                System.out.println("Running thread: " + getName());
+
+                Client client = new Client(ConnectionType.CLIENT, targetPort, realIP);
+                client.sendToClient(responseMessage);
+            }
+        };
+        thread.start();
     }
 }
+
+
+
+

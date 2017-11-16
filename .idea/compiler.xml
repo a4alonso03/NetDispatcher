@@ -7,10 +7,12 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="Dispatcher" />
+        <module name="NetDispatcher" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="Dispatcher" target="1.5" />
+      <module name="NetDispatcher" target="1.5" />
     </bytecodeTargetLevel>
   </component>
 </project>
